@@ -92,11 +92,53 @@ Polynomial Mult(Polynomial P1, Polynomial P2)
 {
     if (!(P1 && P2)) // P1或P2为空都返回NULL
         return NULL;
-    Polynomial P, Rear, t1, t2, t;
+    Polynomial P, rear, t1, t2, t;
     int c, e;
     t1 = P1, t2 = P2;
     P = (Polynomial)malloc(sizeof(struct PolyNode));
     P->link = NULL;
+    rear = P;
+    while (t2) // P1的第一项乘以P2，得到P
+    {
+        Attach(t1->coef * t2->coef, t1->expon + t2->expon, &rear);
+        t2 = t2->link;
+    }
+    t1 = t1->link;
+    while (t1)
+    {
+        t2 = P2, rear = P;
+        while (t2)
+        {
+            e = t1->expon + t2->expon;
+            c = t1->coef * t2->coef;
+            while (rear->link && e < rear->link->expon)
+                rear = rear->link;
+            if (rear->link && rear->link->expon == e)
+                if (rear->link->coef + c)
+                    rear->link->coef += c;
+                else
+                {
+                    t = rear->link;
+                    rear->link = t->link;
+                    free(t);
+                }
+            else
+            {
+                t = (Polynomial)malloc(sizeof(struct PolyNode));
+                t->coef = c;
+                t->expon = e;
+                t->link = rear->link;
+                rear->link = t;
+                rear = rear->link;
+            }
+            t2 = t2->link;
+        }
+        t1 = t1->link;
+    }
+    t2 = P;
+    P = P->link;
+    free(t2);
+    return P;
 }
 
 void PrintPoly(Polynomial P)
@@ -124,8 +166,8 @@ int main()
     Polynomial P1, P2, PP, PS;
     P1 = ReadPoly();
     P2 = ReadPoly();
-    //PP = Mult(P1, P2);
-    //PrintPoly(PP);
+    PP = Mult(P1, P2);
+    PrintPoly(PP);
     PS = Add(P1, P2);
     PrintPoly(PS);
     return 0;
